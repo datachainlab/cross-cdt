@@ -43,7 +43,9 @@ func TestERC20(t *testing.T) {
 		}
 		Approve = func(owner, spender string, amount int64) func(ctx sdk.Context, store cdttypes.StoreI) {
 			return func(ctx sdk.Context, store cdttypes.StoreI) {
-				require.NoError(t, store.(Keeper).Approve(ctx, owner, spender, amount))
+				if err := store.(Keeper).Approve(ctx, owner, spender, amount); err != nil {
+					panic(err)
+				}
 			}
 		}
 		Allowance = func(owner, spender string, expected int64) func(ctx sdk.Context, store cdttypes.StoreI) {
@@ -104,6 +106,14 @@ func TestERC20(t *testing.T) {
 				Query(Allowance(alice, bob, 20)),
 				Commit(TransferFrom(alice, bob, charlie, 20)),
 				Query(Allowance(alice, bob, 0), BalanceOf(alice, 80), BalanceOf(bob, 0), BalanceOf(charlie, 20)),
+			},
+		},
+		{
+			name: "single-chain: approve-transferFrom",
+			commands: []Command{
+				Commit(Approve(alice, bob, 10)),
+				Commit(Approve(alice, bob, 20)),
+				Query(Allowance(alice, bob, 20)),
 			},
 		},
 		{
@@ -185,6 +195,13 @@ func TestERC20(t *testing.T) {
 				Commit(Mint(alice, 100), Approve(alice, bob, 20)),
 				AtomicPrepare(1, TransferFrom(alice, bob, charlie, 15)),
 				AtomicPrepare(2, TransferFromFailed(alice, bob, charlie, 6)),
+			},
+		},
+		{
+			name: "concurrent approve is always failed",
+			commands: []Command{
+				AtomicPrepare(1, Approve(alice, bob, 10)),
+				AtomicPrepare(2, ExpectErrIndefiniteState(t, Approve(alice, bob, 20))),
 			},
 		},
 	}

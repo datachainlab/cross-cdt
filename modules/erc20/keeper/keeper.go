@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	cdtkeeper "github.com/datachainlab/cross-cdt/x/cdt/keeper"
+	cdttypes "github.com/datachainlab/cross-cdt/x/cdt/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -50,10 +51,11 @@ func (k Keeper) TotalSupply(ctx sdk.Context) (int64, error) {
 
 func (k Keeper) Approve(ctx sdk.Context, owner string, spender string, value int64) error {
 	key := allowanceKey(owner, spender)
-	k.store.Add(ctx, key, value)
+	allowance := k.store.Get(ctx, key)
+	k.store.Add(ctx, key, value-allowance)
 	// assertion
-	if !k.store.LTE(ctx, key, value) {
-		return fmt.Errorf("fatal error")
+	if k.store.GT(ctx, key, value) || k.store.LT(ctx, key, value) {
+		return cdttypes.ErrIndefiniteState
 	}
 	return nil
 }
