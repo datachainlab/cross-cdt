@@ -1,0 +1,22 @@
+syntax = "proto3";
+package cross.cdt;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/datachainlab/cross-cdt/x/cdt/types";
+option (gogoproto.goproto_getters_all) = false;
+
+message AddInt64OP {
+  bytes k = 1;
+  int64 v = 2;
+}
+
+message SubInt64OP {
+  bytes k = 1;
+  int64 v = 2;
+}
+
+message Int64CDTState {
+  int64 max = 1;
+  int64 min = 2;
+}

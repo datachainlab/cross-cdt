@@ -1,0 +1,28 @@
+syntax = "proto3";
+package cross.cdt;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/datachainlab/cross-cdt/x/cdt/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// GSet implements Grow-only Set
+
+message GSetValue {
+  repeated bytes elements = 1;
+}
+
+message GSetOP {
+  bytes k = 1;
+  repeated bytes add = 2;
+}
+
+message GSetCDTState {
+  repeated bytes add_set = 1;
+}
+
+message GSetInverseOP {
+  bytes k = 1;
+  repeated bytes add = 2;
+}
