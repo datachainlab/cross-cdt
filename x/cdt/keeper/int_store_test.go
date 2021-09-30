@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/datachainlab/cross-cdt/x/cdt/testutil"
 	"github.com/datachainlab/cross-cdt/x/cdt/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -130,10 +131,10 @@ func TestIntStore(t *testing.T) {
 
 	for _, cs := range cases {
 		t.Run(cs.name, func(t *testing.T) {
-			cms := makeCMStore(t, stk)
-			st := NewStore(makeCodec(), stk, schema)
+			cms := testutil.MakeCMStore(t, stk)
+			st := NewStore(testutil.MakeCodec(), stk, schema)
 			ist := st.GetInt64Store([]byte("test/"))
-			var g = NewCommandGenerater(t, st, cms)
+			var g = testutil.NewCommandGenerater(t, st, cms)
 
 			for _, cmd := range cs.commands {
 				cmd(g)(ist)
