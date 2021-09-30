@@ -198,10 +198,44 @@ func TestERC20(t *testing.T) {
 			},
 		},
 		{
-			name: "concurrent approve is always failed",
+			name: "concurrent transferFrom and approve - 1",
+			commands: []Command{
+				Commit(Mint(alice, 100), Approve(alice, bob, 20)),
+				AtomicPrepare(1, TransferFrom(alice, bob, charlie, 15)),
+				AtomicPrepare(2, ExpectErrIndefiniteState(t, Approve(alice, bob, 10))),
+			},
+		},
+		{
+			name: "concurrent transferFrom and approve - 2",
+			commands: []Command{
+				Commit(Mint(alice, 100), Approve(alice, bob, 20)),
+				AtomicPrepare(1, Approve(alice, bob, 15)),
+				AtomicPrepare(2, TransferFrom(alice, bob, charlie, 15)),
+			},
+		},
+		{
+			name: "concurrent transferFrom and approve - 3",
+			commands: []Command{
+				Commit(Mint(alice, 100), Approve(alice, bob, 20)),
+				AtomicPrepare(1, Approve(alice, bob, 14)),
+				AtomicPrepare(2, TransferFromFailed(alice, bob, charlie, 15)),
+			},
+		},
+		{
+			name: "approve same amount",
+			commands: []Command{
+				Commit(Approve(alice, bob, 10)),
+				AtomicPrepare(1, Approve(alice, bob, 10)),
+				AtomicCommit(1),
+				Query(Allowance(alice, bob, 10)),
+			},
+		},
+		{
+			name: "concurrent approve is failed",
 			commands: []Command{
 				AtomicPrepare(1, Approve(alice, bob, 10)),
-				AtomicPrepare(2, ExpectErrIndefiniteState(t, Approve(alice, bob, 20))),
+				AtomicPrepare(2, ExpectErrIndefiniteState(t, Approve(alice, bob, 10))),
+				AtomicPrepare(3, ExpectErrIndefiniteState(t, Approve(alice, bob, 20))),
 			},
 		},
 	}
