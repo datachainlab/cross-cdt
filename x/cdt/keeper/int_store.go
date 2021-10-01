@@ -72,28 +72,10 @@ func (s Int64Store) Add(ctx sdk.Context, key []byte, value int64) {
 }
 
 func (s Int64Store) GTE(ctx sdk.Context, key []byte, value int64) bool {
-	fullKey := buildKey(s.prefix, key)
-	s.schema.MustMatchInt64(fullKey)
-
-	cdtState := s.cdtStore.GetStateOrEmpty(ctx, fullKey).(*types.Int64CDTState)
-	v := s.stateStore.GetInt64(ctx, fullKey)
-
-	if contracttypes.CommitModeFromContext(ctx.Context()) == contracttypes.AtomicMode {
-		ops := types.OPManagerFromContext(ctx.Context()).GetOPs(fullKey)
-		if len(ops) == 1 {
-			switch op := ops[0].(type) {
-			case types.Int64OP:
-				v = op.AddTo(v)
-			default:
-				panic(fmt.Errorf("unknown type %T", op))
-			}
-		} else {
-		}
-	}
-
-	if v+cdtState.Min >= value {
+	committed, min, max := s.getCDTState(ctx, key)
+	if committed+min >= value {
 		return true
-	} else if v+cdtState.Max < value {
+	} else if committed+max < value {
 		return false
 	} else {
 		panic(types.ErrIndefiniteState)
@@ -101,28 +83,10 @@ func (s Int64Store) GTE(ctx sdk.Context, key []byte, value int64) bool {
 }
 
 func (s Int64Store) GT(ctx sdk.Context, key []byte, value int64) bool {
-	fullKey := buildKey(s.prefix, key)
-	s.schema.MustMatchInt64(fullKey)
-
-	cdtState := s.cdtStore.GetStateOrEmpty(ctx, fullKey).(*types.Int64CDTState)
-	v := s.stateStore.GetInt64(ctx, fullKey)
-
-	if contracttypes.CommitModeFromContext(ctx.Context()) == contracttypes.AtomicMode {
-		ops := types.OPManagerFromContext(ctx.Context()).GetOPs(fullKey)
-		if len(ops) == 1 {
-			switch op := ops[0].(type) {
-			case types.Int64OP:
-				v = op.AddTo(v)
-			default:
-				panic(fmt.Errorf("unknown type %T", op))
-			}
-		} else {
-		}
-	}
-
-	if v+cdtState.Min > value {
+	committed, min, max := s.getCDTState(ctx, key)
+	if committed+min > value {
 		return true
-	} else if v+cdtState.Max <= value {
+	} else if committed+max <= value {
 		return false
 	} else {
 		panic(types.ErrIndefiniteState)
@@ -135,4 +99,43 @@ func (s Int64Store) LTE(ctx sdk.Context, key []byte, value int64) bool {
 
 func (s Int64Store) LT(ctx sdk.Context, key []byte, value int64) bool {
 	return !s.GTE(ctx, key, value)
+}
+
+func (s Int64Store) EQ(ctx sdk.Context, key []byte, value int64) bool {
+	committed, min, max := s.getCDTState(ctx, key)
+	if min != 0 || max != 0 {
+		panic(types.ErrIndefiniteState)
+	}
+	return committed == value
+}
+
+func (s Int64Store) Set(ctx sdk.Context, key []byte, value int64) {
+	current := s.Get(ctx, key)
+	if !s.EQ(ctx, key, current) {
+		panic(types.ErrIndefiniteState)
+	}
+	s.Add(ctx, key, value-current)
+}
+
+func (s Int64Store) getCDTState(ctx sdk.Context, key []byte) (current int64, min int64, max int64) {
+	fullKey := buildKey(s.prefix, key)
+	s.schema.MustMatchInt64(fullKey)
+
+	cdtState := s.cdtStore.GetStateOrEmpty(ctx, fullKey).(*types.Int64CDTState)
+	v := s.stateStore.GetInt64(ctx, fullKey)
+
+	if contracttypes.CommitModeFromContext(ctx.Context()) != contracttypes.AtomicMode {
+		return v, cdtState.Min, cdtState.Max
+	}
+
+	ops := types.OPManagerFromContext(ctx.Context()).GetOPs(fullKey)
+	if len(ops) == 1 {
+		switch op := ops[0].(type) {
+		case types.Int64OP:
+			v = op.AddTo(v)
+		default:
+			panic(fmt.Errorf("unknown type %T", op))
+		}
+	}
+	return v, cdtState.Min, cdtState.Max
 }
