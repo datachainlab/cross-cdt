@@ -1,6 +1,6 @@
 module github.com/datachainlab/cross-cdt
 
-go 1.17
+go 1.16
 
 require (
 	github.com/armon/go-radix v1.0.0

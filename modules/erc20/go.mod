@@ -1,6 +1,6 @@
 module github.com/datachainlab/cross-cdt/modules/erc20
 
-go 1.17
+go 1.16
 
 require (
 	github.com/cosmos/cosmos-sdk v0.43.0-beta1
