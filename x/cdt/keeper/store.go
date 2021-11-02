@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-
 	"github.com/datachainlab/cross-cdt/x/cdt/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -58,6 +57,8 @@ func (s Store) GetGSetStore(prefix []byte) GSetStore {
 }
 
 func (s Store) Precommit(ctx sdk.Context, id []byte) error {
+	fmt.Printf("in Precommit: %x\n", id)
+	fmt.Println(s.txStore.GetLog(ctx))
 	if s.txStore.Has(ctx, id) {
 		return fmt.Errorf("id '%x' already exists", id)
 	}
@@ -66,20 +67,38 @@ func (s Store) Precommit(ctx sdk.Context, id []byte) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Set in Precommit: %x\n", id)
 	s.txStore.Set(ctx, id, bz)
+	bytes := s.txStore.Get(ctx, id)
+	if bytes == nil {
+		fmt.Printf("failed to 1st get in Precommit: %x\n", id)
+	}
 	for _, op := range ops {
 		if err := s.cdtStore.ApplyOP(ctx, op); err != nil {
 			return err
 		}
 	}
+	bytes = s.txStore.Get(ctx, id)
+	if bytes == nil {
+		fmt.Printf("failed to 2nd get in Precommit: %x\n", id)
+	}
 	return nil
 }
 
+// NOTE: ctxの出所を調べる必要あり
 func (s Store) Commit(ctx sdk.Context, id []byte) error {
+	fmt.Printf("in Commit: %x\n", id)
+	fmt.Println(s.txStore.GetLog(ctx))
+	is := s.txStore.Has(ctx, id)
+	if is == false {
+		fmt.Printf("Has is false in Commit: %x\n", id)
+	}
 	bz := s.txStore.Get(ctx, id)
 	if bz == nil {
+		fmt.Printf("error in Commit: %x\n", id)
 		return fmt.Errorf("id '%x' not found", id)
 	}
+	fmt.Printf("after get in Commit: %x\n", id)
 	var anyOPs types.AnyOPs
 	if err := proto.Unmarshal(bz, &anyOPs); err != nil {
 		return err
@@ -98,6 +117,7 @@ func (s Store) Commit(ctx sdk.Context, id []byte) error {
 }
 
 func (s Store) Abort(ctx sdk.Context, id []byte) error {
+	fmt.Printf("in Abort: %x\n", id)
 	bz := s.txStore.Get(ctx, id)
 	if bz == nil {
 		// NOTE: unknown id may be indicates the aborted transaction

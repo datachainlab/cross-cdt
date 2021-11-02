@@ -16,6 +16,8 @@ type KVStoreI interface {
 
 	GetInt64(ctx sdk.Context, key []byte) int64
 	SetInt64(ctx sdk.Context, key []byte, value int64)
+
+	GetLog(ctx sdk.Context) string
 }
 
 type StoreI interface{}

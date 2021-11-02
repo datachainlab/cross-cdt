@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	crosstypes "github.com/datachainlab/cross/x/core/types"
 
 	"github.com/datachainlab/cross-cdt/x/cdt/types"
 
@@ -10,6 +11,7 @@ import (
 )
 
 type kvStore struct {
+	// TODO: storeKey, prefixを取得して表示してみる
 	storeKey sdk.StoreKey
 	prefix   []byte
 }
@@ -59,9 +61,19 @@ func (s kvStore) Has(ctx sdk.Context, key []byte) bool {
 }
 
 func (s kvStore) Delete(ctx sdk.Context, key []byte) {
+	fmt.Printf("in Delete: %x\n", string(key))
 	s.KVStore(ctx).Delete(key)
 }
 
+func (s kvStore) GetLog(ctx sdk.Context) string {
+	return s.storeKey.String() + " : " + string(s.prefix)
+}
+
 func (s kvStore) store(ctx sdk.Context) sdk.KVStore {
-	return ctx.KVStore(s.storeKey)
+	switch storeKey := s.storeKey.(type) {
+	case *crosstypes.PrefixStoreKey:
+		return prefix.NewStore(ctx.KVStore(storeKey.StoreKey), storeKey.Prefix)
+	default:
+		return ctx.KVStore(s.storeKey)
+	}
 }
