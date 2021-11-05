@@ -48,6 +48,7 @@ var (
 	Query                    = testutil.Query
 	AtomicPrepare            = testutil.AtomicPrepare
 	AtomicCommit             = testutil.AtomicCommit
+	AtomicAbort              = testutil.AtomicAbort
 	ExpectErrIndefiniteState = testutil.ExpectErrIndefiniteState
 	K, V                     = testutil.K, testutil.V
 )

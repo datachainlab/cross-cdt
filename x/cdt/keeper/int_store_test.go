@@ -102,6 +102,13 @@ func TestIntStore(t *testing.T) {
 			},
 		},
 		{
+			name: "No operations but aborted",
+			commands: []Command{
+				AtomicPrepare(1),
+				AtomicAbort(1),
+			},
+		},
+		{
 			name: "Add(0) doesn't get a lock",
 			commands: []Command{
 				Commit(Add(K(0), 0)),
@@ -132,6 +139,16 @@ func TestIntStore(t *testing.T) {
 					LTE(K(0), 1, false),
 					Get(K(0), 2),
 				),
+			},
+		},
+		{
+			name: "check if a lock is released after aborted",
+			commands: []Command{
+				AtomicPrepare(1, Add(K(0), 1)),
+				AtomicAbort(1),
+				Query(Get(K(0), 0)),
+				Commit(Add(K(0), 1)),
+				Query(Get(K(0), 1)),
 			},
 		},
 	}

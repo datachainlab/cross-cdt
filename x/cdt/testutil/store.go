@@ -53,6 +53,13 @@ func (g *CommandGenerator) AtomicCommit(id uint64) StoreCommand {
 	}
 }
 
+func (g *CommandGenerator) AtomicAbort(id uint64) StoreCommand {
+	return func(store types.StoreI) {
+		ctx := MakeAtomicModeContext(g.cms, types.NewOPManager())
+		g.st.Abort(ctx, sdk.Uint64ToBigEndian(id))
+	}
+}
+
 func (g *CommandGenerator) Commit(ops ...OPCommand) StoreCommand {
 	return func(store types.StoreI) {
 		ctx := MakeBasicModeContext(g.cms, types.NewOPManager())
@@ -82,6 +89,12 @@ func AtomicPrepare(id uint64, ops ...OPCommand) func(g *CommandGenerator) StoreC
 func AtomicCommit(id uint64) func(g *CommandGenerator) StoreCommand {
 	return func(g *CommandGenerator) StoreCommand {
 		return g.AtomicCommit(id)
+	}
+}
+
+func AtomicAbort(id uint64) func(g *CommandGenerator) StoreCommand {
+	return func(g *CommandGenerator) StoreCommand {
+		return g.AtomicAbort(id)
 	}
 }
 
