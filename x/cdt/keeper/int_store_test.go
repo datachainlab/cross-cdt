@@ -95,6 +95,13 @@ func TestIntStore(t *testing.T) {
 			},
 		},
 		{
+			name: "No operations",
+			commands: []Command{
+				AtomicPrepare(1),
+				AtomicCommit(1),
+			},
+		},
+		{
 			name: "Add(0) doesn't get a lock",
 			commands: []Command{
 				Commit(Add(K(0), 0)),
