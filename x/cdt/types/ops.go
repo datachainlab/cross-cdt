@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/gogo/protobuf/proto"
+	"sort"
 )
 
 type OP interface {
@@ -33,10 +34,16 @@ func (m *opManager) Add(op OP, composer OPComposer) {
 	m.opsm[k] = composer.Compose(m.opsm[k], op)
 }
 
+// OPs returns a slice of OP in increasing order
 func (m opManager) OPs() []OP {
 	var ret []OP
-	for _, ops := range m.opsm {
-		ret = append(ret, ops...)
+	keys := make([]string, 0, len(m.opsm))
+	for k := range m.opsm {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		ret = append(ret, m.opsm[k]...)
 	}
 	return ret
 }
