@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/cosmos/cosmos-sdk v0.43.0-beta1
-	github.com/datachainlab/cross v0.2.0
+	github.com/datachainlab/cross v0.2.2
 	github.com/datachainlab/cross-cdt v0.0.0-00010101000000-000000000000
 	github.com/gogo/protobuf v1.3.3
 	github.com/gorilla/mux v1.8.0

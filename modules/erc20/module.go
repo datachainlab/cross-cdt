@@ -14,6 +14,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authtypes "github.com/datachainlab/cross/x/core/auth/types"
 	contracttypes "github.com/datachainlab/cross/x/core/contract/types"
 	txtypes "github.com/datachainlab/cross/x/core/tx/types"
 	"github.com/gorilla/mux"
@@ -150,6 +151,6 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 }
 
 // OnContractCall implements crosstypes.CrossModule
-func (am AppModule) OnContractCall(ctx context.Context, callInfo txtypes.ContractCallInfo) (*txtypes.ContractCallResult, error) {
+func (am AppModule) OnContractCall(ctx context.Context, accounts []authtypes.Account, callInfo txtypes.ContractCallInfo) (*txtypes.ContractCallResult, error) {
 	return &txtypes.ContractCallResult{}, nil
 }
